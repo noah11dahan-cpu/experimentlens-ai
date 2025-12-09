@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Experiment result</title>
+</head>
+<body>
+    <h1>Experiment: {{ experiment_name }}</h1>
+
+    <p><strong>Hypothesis:</strong> {{ hypothesis }}</p>
+
+    <h2>Variant stats</h2>
+    <table border="1" cellpadding="5">
+        <thead>
+            <tr>
+                <th>Variant</th>
+                <th>Users</th>
+                <th>Conversions</th>
+                <th>Conversion rate (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for v in variants %}
+            <tr>
+                <td>{{ v.variant_name }}</td>
+                <td>{{ v.users }}</td>
+                <td>{{ v.conversions }}</td>
+                <td>{{ v.conversion_rate }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <p><a href="/">Upload another experiment</a></p>
+</body>
+</html>

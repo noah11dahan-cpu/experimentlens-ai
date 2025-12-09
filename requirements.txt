@@ -5,3 +5,4 @@ sqlalchemy
 python-dotenv
 jinja2
 pytest
+python-multipart

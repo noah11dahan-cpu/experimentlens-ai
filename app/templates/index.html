@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ExperimentLens AI - Upload</title>
+</head>
+<body>
+    <h1>ExperimentLens AI</h1>
+    <h2>Upload A/B Test Results</h2>
+
+    <p>The CSV must have columns: <strong>user_id</strong>, <strong>variant</strong>, <strong>converted</strong> (0 or 1).</p>
+
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="experiment_name">Experiment name:</label><br>
+        <input type="text" id="experiment_name" name="experiment_name" required><br><br>
+
+        <label for="hypothesis">Hypothesis:</label><br>
+        <textarea id="hypothesis" name="hypothesis" rows="3" cols="40" required></textarea><br><br>
+
+        <label for="file">CSV file:</label><br>
+        <input type="file" id="file" name="file" accept=".csv" required><br><br>
+
+        <button type="submit">Upload and analyze</button>
+    </form>
+</body>
+</html>
