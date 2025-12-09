@@ -1,0 +1,73 @@
+# -------------------------------
+# Python bytecode / cache
+# -------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# -------------------------------
+# Virtual environments
+# -------------------------------
+.venv/
+venv/
+env/
+ENV/
+
+# -------------------------------
+# Environment / secrets
+# -------------------------------
+.env
+.env.*
+!.env.example    # keep the example env file
+
+# -------------------------------
+# Databases (local only)
+# -------------------------------
+*.db
+*.sqlite3
+
+# If you ever want a specific DB in git,
+# remove it from here or add an exception like:
+# !schema.db
+
+# -------------------------------
+# Test / coverage caches
+# -------------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# -------------------------------
+# Type checker / tools caches
+# -------------------------------
+.mypy_cache/
+.pytype/
+.pyre/
+
+# -------------------------------
+# Logs
+# -------------------------------
+*.log
+
+# -------------------------------
+# Jupyter notebooks (if any)
+# -------------------------------
+.ipynb_checkpoints/
+*.ipynb
+
+# -------------------------------
+# Editors / IDE settings
+# -------------------------------
+.vscode/
+.idea/
+*.code-workspace
+
+# -------------------------------
+# OS junk files
+# -------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
