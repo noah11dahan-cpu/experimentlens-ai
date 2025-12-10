@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1 class="mb-3">Experiments</h1>
+
+  {% if experiments %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Hypothesis</th>
+          <th>Created at</th>
+          <th>Variants</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exp in experiments %}
+          <tr>
+            <td>{{ exp.id }}</td>
+            <td>{{ exp.name }}</td>
+            <td>{{ exp.hypothesis }}</td>
+            <td>{{ exp.created_at }}</td>
+            <td>{{ exp.variants | length }}</td>
+            <td>
+              <a class="btn btn-sm btn-primary" href="{{ url_for('experiment_detail', experiment_id=exp.id) }}">
+                View
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No experiments yet. Upload one from the home page.</p>
+  {% endif %}
+</div>
+{% endblock %}

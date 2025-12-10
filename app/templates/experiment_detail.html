@@ -1,36 +1,64 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Experiment result</title>
-</head>
-<body>
-    <h1>Experiment: {{ experiment_name }}</h1>
+{% extends "base.html" %}
 
-    <p><strong>Hypothesis:</strong> {{ hypothesis }}</p>
+{% block content %}
+<div class="container mt-4">
+  <h1>Experiment: {{ experiment.name }}</h1>
 
-    <h2>Variant stats</h2>
-    <table border="1" cellpadding="5">
-        <thead>
-            <tr>
-                <th>Variant</th>
-                <th>Users</th>
-                <th>Conversions</th>
-                <th>Conversion rate (%)</th>
-            </tr>
-        </thead>
-        <tbody>
+  <!-- added: show ID + created timestamp, but keeps all your content -->
+  <p>
+    <strong>ID:</strong> {{ experiment.id }} |
+    <strong>Created at:</strong> {{ experiment.created_at }}
+  </p>
+
+  <p><strong>Hypothesis:</strong> {{ experiment.hypothesis or "" }}</p>
+
+  <h2 class="mt-4">Variant stats</h2>
+
+  {% if variants %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Variant</th>
+          <th>Users</th>
+          <th>Conversions</th>
+          <th>Conversion rate (%)</th>
+          <th>Uplift vs control</th>
+          <th>p-value</th>
+        </tr>
+      </thead>
+      <tbody>
         {% for v in variants %}
-            <tr>
-                <td>{{ v.variant_name }}</td>
-                <td>{{ v.users }}</td>
-                <td>{{ v.conversions }}</td>
-                <td>{{ v.conversion_rate }}</td>
-            </tr>
+          <tr>
+            <td>{{ v.name }}</td>
+            <td>{{ v.users }}</td>
+            <td>{{ v.conversions }}</td>
+            <!-- conversion_rate is stored as a proportion (0.12), show as % -->
+            <td>{{ "%.2f" | format(v.conversion_rate * 100) }}</td>
+            <td>
+              {% if v.uplift is not none %}
+                {{ "%.3f" | format(v.uplift) }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              {% if v.p_value is not none %}
+                {{ "%.3f" | format(v.p_value) }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
         {% endfor %}
-        </tbody>
+      </tbody>
     </table>
+  {% else %}
+    <p>No variants saved for this experiment.</p>
+  {% endif %}
 
-    <p><a href="/">Upload another experiment</a></p>
-</body>
-</html>
+  <p class="mt-3">
+    <a href="{{ url_for('get_index') }}">Upload another experiment</a> |
+    <a href="{{ url_for('list_experiments') }}">Back to all experiments</a>
+  </p>
+</div>
+{% endblock %}

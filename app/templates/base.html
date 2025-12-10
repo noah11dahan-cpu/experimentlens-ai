@@ -8,6 +8,13 @@
     <header>
         <h1>ExperimentLens AI</h1>
         <hr>
+
+        <!-- NEW: simple navbar, added WITHOUT removing anything above -->
+        <nav>
+            <a href="{{ url_for('get_index') }}">Home</a> |
+            <a href="{{ url_for('list_experiments') }}">Experiments</a>
+        </nav>
+        <hr>
     </header>
 
     <main>
