@@ -30,13 +30,14 @@ def get_db():
 
 
 @app.get("/", response_class=HTMLResponse)
-async def get_index(request: Request):
+async def get_index(request: Request, db: Session = Depends(get_db)):
     """
     Render the main index page with the experiment form.
     """
-    return templates.TemplateResponse(
+    experiments = db.query(models.Experiment).all()
+    return templates.TemplateResponse(request,
         "index.html",
-        {"request": request},
+        {"experiments": experiments},
     )
 
 
@@ -44,7 +45,8 @@ async def get_index(request: Request):
 async def upload_experiment(
     request: Request,
     name: str = Form(...),
-    hypothesis: str = Form(""),
+    hypothesis: str = Form(...),
+    alpha : float = Form(0.05),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
@@ -54,10 +56,11 @@ async def upload_experiment(
 
     # Basic file type check (not bulletproof, but ok for now)
     if not file.filename.lower().endswith(".csv"):
-        return templates.TemplateResponse(
+        experiments = db.query(models.Experiment).all()
+        return templates.TemplateResponse(request,
             "index.html",
             {
-                "request": request,
+                "experiments": experiments,
                 "error": "Please upload a .csv file.",
             },
             status_code=400,
@@ -134,10 +137,10 @@ async def upload_experiment(
 
     except Exception as e:
         # Simple error handling for now
-        return templates.TemplateResponse(
+        return templates.TemplateResponse(request,
             "index.html",
             {
-                "request": request,
+                "experiments": experiments,
                 "error": f"Something went wrong: {e}",
             },
             status_code=400,
@@ -152,7 +155,7 @@ def list_experiments(
         .order_by(models.Experiment.created_at.desc())
         .all()
     )
-    return templates.TemplateResponse(
+    return templates.TemplateResponse(request,
         "experiments.html",
         {"request": request, "experiments": experiments},
     )
@@ -172,7 +175,7 @@ def experiment_detail(
     if not experiment:
         raise HTTPException(status_code=404, detail="Experiment not found")
 
-    return templates.TemplateResponse(
+    return templates.TemplateResponse(request,
         "experiment_detail.html",
         {
             "request": request,
@@ -190,7 +193,7 @@ def list_experiments(
         .order_by(models.Experiment.created_at.desc())
         .all()
     )
-    return templates.TemplateResponse(
+    return templates.TemplateResponse(request,
         "experiments.html",
         {
             "request": request,
@@ -211,7 +214,7 @@ def experiment_detail(
     if not experiment:
         raise HTTPException(status_code=404, detail="Experiment not found")
 
-    return templates.TemplateResponse(
+    return templates.TemplateResponse(request,
         "experiment_detail.html",
         {
             "request": request,
