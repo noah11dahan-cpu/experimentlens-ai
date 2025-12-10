@@ -2,72 +2,80 @@ from fastapi import FastAPI, Request, UploadFile, File, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-import pandas as pd
-from io import StringIO
+import io
+
+from app.stats import load_experiment_csv, compute_conversion_stats
 
 app = FastAPI()
 
-# Tell FastAPI where the templates live
 templates = Jinja2Templates(directory="app/templates")
 
 
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
+async def get_index(request: Request):
     """
-    Show the upload form.
+    Render the main index page with the experiment form.
     """
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request},
+    )
 
 
 @app.post("/upload", response_class=HTMLResponse)
 async def upload_experiment(
     request: Request,
-    experiment_name: str = Form(...),
+    name: str = Form(...),
     hypothesis: str = Form(...),
     file: UploadFile = File(...),
 ):
     """
-    Handle the CSV upload, compute basic stats, and show results.
+    Receive the uploaded CSV, compute stats, and show a simple results page.
     """
-    # Read the uploaded file into memory
-    content = await file.read()
-    text = content.decode("utf-8")
 
-    # Load into a pandas DataFrame
-    # Expect columns: user_id, variant, converted
-    df = pd.read_csv(StringIO(text))
-
-    # Basic validation
-    required_columns = {"user_id", "variant", "converted"}
-    if not required_columns.issubset(df.columns):
-        error_message = (
-            f"CSV must contain columns: {', '.join(required_columns)}. "
-            f"Found: {', '.join(df.columns)}"
-        )
-        return HTMLResponse(error_message, status_code=400)
-
-    # Group by variant and compute stats
-    grouped = df.groupby("variant")["converted"].agg(["count", "sum"])
-    grouped["conversion_rate"] = grouped["sum"] / grouped["count"]
-
-    # Convert to a list of dicts for the template
-    variants = []
-    for variant_name, row in grouped.iterrows():
-        variants.append(
+    # Basic file type check (not bulletproof, but ok for now)
+    if not file.filename.lower().endswith(".csv"):
+        return templates.TemplateResponse(
+            "results.html",
             {
-                "variant_name": variant_name,
-                "users": int(row["count"]),
-                "conversions": int(row["sum"]),
-                "conversion_rate": round(row["conversion_rate"] * 100, 2),
-            }
+                "request": request,
+                "name": name,
+                "hypothesis": hypothesis,
+                "error": "Please upload a .csv file.",
+                "stats": None,
+            },
+            status_code=400,
         )
 
-    context = {
-        "request": request,
-        "experiment_name": experiment_name,
-        "hypothesis": hypothesis,
-        "variants": variants,
-    }
+    try:
+        # Read file contents into memory
+        contents = await file.read()
+        file_obj = io.BytesIO(contents)
 
-    return templates.TemplateResponse("experiment_detail.html", context)
+        # Load into pandas and compute stats
+        df = load_experiment_csv(file_obj)
+        stats = compute_conversion_stats(df)
 
+        return templates.TemplateResponse(
+            "results.html",
+            {
+                "request": request,
+                "name": name,
+                "hypothesis": hypothesis,
+                "stats": stats,
+                "error": None,
+            },
+        )
+    except Exception as e:
+        # For now, show a simple error on the page
+        return templates.TemplateResponse(
+            "results.html",
+            {
+                "request": request,
+                "name": name,
+                "hypothesis": hypothesis,
+                "stats": None,
+                "error": f"Something went wrong: {e}",
+            },
+            status_code=400,
+        )

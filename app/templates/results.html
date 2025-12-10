@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Experiment Results{% endblock %}
+
+{% block content %}
+<h2>Experiment Results</h2>
+
+<div>
+    <strong>Name:</strong> {{ name }}<br>
+    <strong>Hypothesis:</strong> {{ hypothesis }}
+</div>
+
+{% if error %}
+    <p style="color: red;">{{ error }}</p>
+{% endif %}
+
+{% if stats %}
+    <h3>Conversion statistics</h3>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Variant</th>
+                <th>Users</th>
+                <th>Conversions</th>
+                <th>Conversion rate</th>
+                <th>Uplift vs A</th>
+                <th>p-value (B vs A)</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for variant, data in stats.items() %}
+            <tr>
+                <td>{{ variant }}</td>
+                <td>{{ data.users }}</td>
+                <td>{{ data.conversions }}</td>
+                <td>{{ (data.conversion_rate * 100) | round(2) }}%</td>
+                <td>
+                    {% if data.uplift is defined %}
+                        {{ (data.uplift * 100) | round(2) }}%
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if data.p_value is defined %}
+                        {{ data.p_value | round(4) }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    {% if not error %}
+        <p>No statistics available.</p>
+    {% endif %}
+{% endif %}
+
+<p><a href="/">Back to new experiment</a></p>
+{% endblock %}
