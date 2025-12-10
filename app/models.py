@@ -14,6 +14,8 @@ class Experiment(Base):
     name = Column(String, nullable=False)
     hypothesis = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    report_text = Column(Text, nullable=True)
+    recommendation = Column(Text, nullable=True)
 
     # One-to-many: Experiment → Variants
     variants = relationship(

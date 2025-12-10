@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from .stats import load_experiment_csv, compute_conversion_stats
 from .db import SessionLocal, engine
 from . import models
+from app.ai_client import generate_report
+from app import models
 
 
 app = FastAPI()
@@ -98,6 +100,31 @@ async def upload_experiment(
             db.add(variant)
 
         db.commit()
+
+        # 3a) Build AI input from computed stats (no recomputation, just summary for the model)
+        variants_for_ai = []
+        for variant_name, v in stats_dict.items():
+            variants_for_ai.append({
+                "name": variant_name,
+                "users": v.get("users"),
+                "conversions": v.get("conversions"),
+                "conversion_rate": v.get("conversion_rate"),
+                "uplift": v.get("uplift"),
+                "p_value": v.get("p_value"),
+            })
+
+        # 3b) Generate insight report and recommendation, then persist on the Experiment
+        try:
+            ai_out = generate_report(experiment, variants_for_ai)
+            experiment.report_text = ai_out.get("report_text", "")
+            experiment.recommendation = ai_out.get("recommendation", "more_data")
+            db.add(experiment)
+            db.commit()
+            db.refresh(experiment)
+        except Exception as ai_err:
+            # Non-fatal: if AI fails, proceed without blocking the upload flow
+            # (You can surface a soft warning in the UI later if you want.)
+            print(f"AI generation failed: {ai_err}")
 
         # 3) Redirect to the detail page for this experiment
         return RedirectResponse(
