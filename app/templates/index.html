@@ -16,13 +16,32 @@
         <strong>conversions</strong>.
     </p>
 
+    <!-- 🔹 Error message block -->
+    {% if error %}
+      <div style="color: red; margin-bottom: 1rem;">
+        {{ error }}
+      </div>
+    {% endif %}
+
     <form action="/upload" method="post" enctype="multipart/form-data">
         <label for="experiment_name">Experiment name:</label><br>
         <!-- name MUST be "name" to match main.py -->
-        <input type="text" id="experiment_name" name="name" required><br><br>
+        <input
+            type="text"
+            id="experiment_name"
+            name="name"
+            required
+            value="{{ form_name or '' }}"
+        ><br><br>
 
         <label for="hypothesis">Hypothesis:</label><br>
-        <textarea id="hypothesis" name="hypothesis" rows="3" cols="40" required></textarea><br><br>
+        <textarea
+            id="hypothesis"
+            name="hypothesis"
+            rows="3"
+            cols="40"
+            required
+        >{{ form_hypothesis or '' }}</textarea><br><br>
 
         <label for="file">CSV file:</label><br>
         <input type="file" id="file" name="file" accept=".csv" required><br><br>

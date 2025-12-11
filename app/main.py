@@ -46,7 +46,7 @@ async def upload_experiment(
     request: Request,
     name: str = Form(...),
     hypothesis: str = Form(...),
-    alpha : float = Form(0.05),
+    alpha: float = Form(0.05),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
@@ -54,14 +54,49 @@ async def upload_experiment(
     Receive the uploaded CSV, compute stats, save to DB, and redirect to detail page.
     """
 
-    # Basic file type check (not bulletproof, but ok for now)
-    if not file.filename.lower().endswith(".csv"):
-        experiments = db.query(models.Experiment).all()
-        return templates.TemplateResponse(request,
+    # ✅ Always have experiments available for re-rendering index.html on errors
+    experiments = db.query(models.Experiment).all()
+
+    # ✅ Basic form validation: name / hypothesis
+    if not name.strip():
+        return templates.TemplateResponse(
             "index.html",
             {
+                "request": request,
+                "experiments": experiments,
+                "error": "Please provide an experiment name.",
+                # 🔹 keep previous values
+                "form_name": name,
+                "form_hypothesis": hypothesis,
+            },
+            status_code=400,
+        )
+
+    if not hypothesis.strip():
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "experiments": experiments,
+                "error": "Please provide a hypothesis.",
+                # 🔹 keep previous values
+                "form_name": name,
+                "form_hypothesis": hypothesis,
+            },
+            status_code=400,
+        )
+
+    # Basic file type check (not bulletproof, but ok for now)
+    if not file.filename.lower().endswith(".csv"):
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
                 "experiments": experiments,
                 "error": "Please upload a .csv file.",
+                # 🔹 keep previous values
+                "form_name": name,
+                "form_hypothesis": hypothesis,
             },
             status_code=400,
         )
@@ -129,22 +164,42 @@ async def upload_experiment(
             # (You can surface a soft warning in the UI later if you want.)
             print(f"AI generation failed: {ai_err}")
 
-        # 3) Redirect to the detail page for this experiment
+        # 4) Redirect to the detail page for this experiment
         return RedirectResponse(
             url=request.url_for("experiment_detail", experiment_id=experiment.id),
             status_code=303,
         )
 
-    except Exception as e:
-        # Simple error handling for now
-        return templates.TemplateResponse(request,
+    # ✅ CSV validation / ValueError from load_experiment_csv
+    except ValueError as e:
+        return templates.TemplateResponse(
             "index.html",
             {
+                "request": request,
                 "experiments": experiments,
-                "error": f"Something went wrong: {e}",
+                "error": str(e),
+                # 🔹 keep previous values
+                "form_name": name,
+                "form_hypothesis": hypothesis,
             },
             status_code=400,
         )
+
+    # ✅ Catch-all for anything else (unexpected bugs)
+    except Exception as e:
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "experiments": experiments,
+                "error": "Something went wrong while processing your file. Please check your CSV and try again.",
+                # 🔹 keep previous values
+                "form_name": name,
+                "form_hypothesis": hypothesis,
+            },
+            status_code=400,
+        )
+
 @app.get("/experiments", response_class=HTMLResponse)
 def list_experiments(
     request: Request,

@@ -3,23 +3,21 @@ import math
 
 import pandas as pd
 
+REQUIRED_COLUMNS = {"variant", "users", "conversions"}
 
-def load_experiment_csv(file_obj) -> pd.DataFrame:
-    """
-    Read a CSV file object into a pandas DataFrame.
+def load_experiment_csv(file) -> pd.DataFrame:
+    df = pd.read_csv(file)  # or however you're reading it now
 
-    Expected columns:
-    - variant (e.g. "A", "B")
-    - users (int)
-    - conversions (int)
-    """
-    df = pd.read_csv(file_obj)
-    # Basic sanity check
-    required_cols = {"variant", "users", "conversions"}
-    if not required_cols.issubset(df.columns):
-        missing = required_cols - set(df.columns)
-        raise ValueError(f"CSV is missing required columns: {', '.join(missing)}")
+    # 🔹 Validation using the list
+    missing = [col for col in REQUIRED_COLUMNS if col not in df.columns]
+    if missing:
+        raise ValueError(
+            f"Your CSV is missing these columns: {', '.join(missing)}. "
+            "Please upload a file with all required columns."
+        )
+
     return df
+
 
 
 def _normal_cdf(x: float) -> float:
