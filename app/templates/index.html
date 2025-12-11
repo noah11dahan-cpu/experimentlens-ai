@@ -48,5 +48,26 @@
 
         <button type="submit">Upload and analyze</button>
     </form>
+
+    <!-- 🔹 Optional: show existing experiments under the form -->
+    {% if experiments %}
+      <h2>Previous experiments</h2>
+      <table border="1" cellpadding="6" cellspacing="0">
+          <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Hypothesis</th>
+              <th>Details</th>
+          </tr>
+          {% for exp in experiments %}
+            <tr>
+                <td>{{ exp.id }}</td>
+                <td>{{ exp.name }}</td>
+                <td>{{ exp.hypothesis }}</td>
+                <td><a href="/experiments/{{ exp.id }}">View</a></td>
+            </tr>
+          {% endfor %}
+      </table>
+    {% endif %}
 </body>
 </html>
